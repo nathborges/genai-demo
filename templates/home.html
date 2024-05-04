@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Página de Exemplo</title>
+    <style>
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: yellow;
+            color: black;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Processamento de Imagem</h1>
+    
+    <!-- Formulário para upload de imagem -->
+    <form id="uploadForm">
+        <input type="file" name="fileInput" id="fileInput">
+        <button type="button" class="button" onclick="uploadImage()">Upload Imagem</button>
+    </form>
+
+    <br>
+
+    <!-- Botão para processar a imagem -->
+    <button type="button" class="button" onclick="processImage()">Processar Imagem</button>
+
+    <br>
+
+    <!-- Resultado da descrição da imagem -->
+    <div id="result"></div>
+
+    <!-- Script JavaScript para fazer requisições AJAX -->
+    <script>
+        function uploadImage() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+
+            // Verifica se um arquivo foi selecionado
+            if (!file) {
+                alert('Selecione um arquivo de imagem.');
+                return;
+            }
+
+            // Converte o arquivo para base64
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var imageData = event.target.result;
+
+                // Envia a imagem em base64 para a rota /describe
+                fetch('/describe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image: imageData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('result').innerHTML = 'Imagem carregada com sucesso!';
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar imagem:', error);
+                });
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function processImage() {
+            fetch('/describe', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                document.getElementById('result').innerHTML = 'Descrição da imagem: ' + data.description;
+            })
+            .catch(error => {
+                console.error('Erro ao processar imagem:', error);
+            });
+        }
+    </script>
+</body>
+</html>

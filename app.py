@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import base64
 import io
 import os
@@ -11,9 +11,13 @@ genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 model = genai.GenerativeModel('gemini-pro-vision')
 
 
-@app.route('/')
+@app.route('/hello-world')
 def hello_world():
     return 'Hello, World!'
+
+@app.route('/')
+def home():
+    return render_template('home.html')
 
 @app.route('/describe', methods=['POST'])
 def describe_image():
