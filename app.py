@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import base64
 import io
 import os
@@ -6,6 +7,7 @@ from PIL import Image
 import google.generativeai as genai
 
 app = Flask(__name__)
+CORS(app) # Habilitar CORS para todas as rotas da sua aplicação
 
 genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 model = genai.GenerativeModel('gemini-pro-vision')
@@ -32,7 +34,6 @@ def describe_image():
         
         # Converte os bytes em um objeto de imagem
         image = Image.open(io.BytesIO(image_data))
-
 
         response = model.generate_content(["Descreva com detalhes", image])
         response.resolve()

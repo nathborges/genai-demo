@@ -1,90 +1,183 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Página de Exemplo</title>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BYTEAI</title>
     <style>
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: yellow;
-            color: black;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            margin-right: 10px;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #6b5b95;
         }
+        .container {
+            max-width: 90%;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #6b5b95;
+        }
+        .output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            margin-bottom: 10px;
+        }
+        strong {
+            color: #6b5b95;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .custom-upload-button {
+            display: inline-block;
+            background-color: #6b5b95;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .custom-upload-button:hover {
+            background-color: #563d7c;
+        }
+        #fileLabel {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #6b5b95;
+        }
+        .loading.active {
+            display: inline;
+        }
+
+        .toast-success {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .toast-failure {
+            background-color: #f44336;
+            color: white;
+        }        
     </style>
-</head>
-<body>
-    <h1>Processamento de Imagem</h1>
-    
-    <!-- Formulário para upload de imagem -->
-    <form id="uploadForm">
-        <input type="file" name="fileInput" id="fileInput">
-        <button type="button" class="button" onclick="uploadImage()">Upload Imagem</button>
-    </form>
-
-    <br>
-
-    <!-- Botão para processar a imagem -->
-    <button type="button" class="button" onclick="processImage()">Processar Imagem</button>
-
-    <br>
-
-    <!-- Resultado da descrição da imagem -->
-    <div id="result"></div>
-
-    <!-- Script JavaScript para fazer requisições AJAX -->
+  </head>
+  <body>
+    <div class="container">
+      <h1>Bem vindo(a) ao BYTEAI!</h1>
+      <form id="imageUploadForm">
+        <label for="imageInput" class="custom-upload-button">
+          Escolha uma Imagem
+          <input type="file" id="imageInput" accept="image/*" onchange="displayImage(event)" />
+        </label>
+        <span id="fileLabel"></span>
+        <div id="imageDisplay"></div>
+        <button type="submit" class="custom-upload-button">Enviar</button>
+        <span class="loading" id="loadingIndicator">Carregando...</span>
+      </form>
+      <div class="output" id="outputDiv" style="display: none">
+        <h2>Resultado da API:</h2>
+        <p><strong>Descrição:</strong> <span id="descricao"></span></p>
+      </div>
+    </div>
+    <div id="toastElement" class="toast"></div>
     <script>
-        function uploadImage() {
-            var fileInput = document.getElementById('fileInput');
-            var file = fileInput.files[0];
 
-            // Verifica se um arquivo foi selecionado
-            if (!file) {
-                alert('Selecione um arquivo de imagem.');
-                return;
+        function displayImage(event) {
+                const file = event.target.files[0];
+
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        const imageUrl = e.target.result;
+
+                        const imageDisplay = document.getElementById('imageDisplay');
+                        imageDisplay.innerHTML = `<img src="${imageUrl}" alt="Imagem Selecionada" id="uploadedImage" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">`;
+                    };
+
+                    reader.readAsDataURL(file);
+                }
             }
 
-            // Converte o arquivo para base64
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                var imageData = event.target.result;
+        const imageInput = document.getElementById('imageInput');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+        const outputDiv = document.getElementById('outputDiv');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const descricaoSpan = document.getElementById('descricao');
 
-                // Envia a imagem em base64 para a rota /describe
-                fetch('/describe', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ image: imageData })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    document.getElementById('result').innerHTML = 'Imagem carregada com sucesso!';
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar imagem:', error);
-                });
+        imageUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const file = imageInput.files[0];
+
+            const reader = new FileReader();
+            reader.onload = async function () {
+                const base64Image = reader.result.split(',')[1];
+
+                const payload = {
+                    image: base64Image
+                };
+
+                try {
+                    loadingIndicator.classList.add('active');
+
+                    const response = await fetch('https://genai-demo-yi6x.onrender.com/describe', {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erro ao chamar a API');
+                    }
+
+                    showToast('Sucesso ao chamar a API!', 'toast-success');
+
+                    const data = await response.json();
+
+                    descricaoSpan.textContent = data.description;
+
+                    outputDiv.style.display = 'block';
+                } catch (error) {
+                    console.error('Erro:', error);
+                    showToast('Falha ao chamar a API.', 'toast-failure');
+                } finally {
+                    loadingIndicator.classList.remove('active');
+                }
             };
 
             reader.readAsDataURL(file);
-        }
+        });
 
-        function processImage() {
-            fetch('/describe', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                document.getElementById('result').innerHTML = 'Descrição da imagem: ' + data.description;
-            })
-            .catch(error => {
-                console.error('Erro ao processar imagem:', error);
-            });
+        function showToast(message, styleClass) {
+            const toastElement = document.getElementById('toastElement');
+            toastElement.textContent = message;
+            toastElement.className = `toast ${styleClass}`;
+            toastElement.style.display = 'block';
+
+            setTimeout(() => {
+                toastElement.style.display = 'none';
+            }, 2000);
         }
     </script>
-</body>
+  </body>
 </html>
