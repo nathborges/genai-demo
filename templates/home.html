@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BYTEAI</title>
     <style>
         body {
@@ -10,36 +10,41 @@
             margin: 0;
             padding: 20px;
             background-color: #6b5b95;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
+
         .container {
-            max-width: 90%;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
+
         h1 {
             color: #6b5b95;
+            text-align: center;
         }
-        .output {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+
+        .items {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
         }
-        ul li {
-            margin-bottom: 10px;
-        }
-        strong {
-            color: #6b5b95;
-        }
-        input[type="file"] {
-            display: none;
-        }
+
         .custom-upload-button {
             display: inline-block;
             background-color: #6b5b95;
@@ -50,50 +55,130 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+
         .custom-upload-button:hover {
             background-color: #563d7c;
         }
-        #fileLabel {
-            display: inline-block;
-            margin-left: 10px;
+
+        #imageInput {
+            display: none;
         }
+
+        .input-container {
+            position: relative;
+            width: 100%;
+            max-width: 250px;
+            margin-bottom: 20px;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #6b5b95;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-container input:focus {
+            outline: none;
+            border-color: #563d7c;
+        }
+
+        .input-container label {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            background-color: #ffffff;
+            padding: 0 5px;
+            color: #6b5b95;
+            font-size: 16px;
+            pointer-events: none;
+            transition: top 0.3s, font-size 0.3s;
+        }
+
+        .input-container input:valid + label,
+        .input-container input:focus + label {
+            top: 0;
+            font-size: 12px;
+            color: #563d7c;
+        }
+
+        button {
+            margin-top: 20px;
+            align-self: center;
+        }
+
         .loading {
             display: none;
             margin-top: 10px;
             color: #6b5b95;
         }
+
         .loading.active {
             display: inline;
         }
 
+        .output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .output h2 {
+            color: #6b5b95;
+            text-align: center;
+        }
+
+        .output p {
+            color: #6b5b95;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: #ffffff;
+            display: none;
+        }
+
         .toast-success {
             background-color: #4caf50;
-            color: white;
         }
 
         .toast-failure {
             background-color: #f44336;
-            color: white;
-        }        
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1>Bem vindo(a) ao BYTEAI!</h1>
-      <form id="imageUploadForm">
-        <label for="imageInput" class="custom-upload-button">
-          Escolha uma Imagem
-          <input type="file" id="imageInput" accept="image/*" onchange="displayImage(event)" />
-        </label>
-        <span id="fileLabel"></span>
-        <div id="imageDisplay"></div>
-        <button type="submit" class="custom-upload-button">Enviar</button>
-        <span class="loading" id="loadingIndicator">Carregando...</span>
-      </form>
-      <div class="output" id="outputDiv" style="display: none">
-        <h2>Resultado da API:</h2>
-        <p><strong>Descrição:</strong> <span id="descricao"></span></p>
-      </div>
+        <h1>Bem vindo(a) ao BYTEAI!</h1>
+        <form id="imageUploadForm">
+            <div class="items">
+                <label for="imageInput" class="custom-upload-button">
+                    Escolha uma Imagem
+                    <input type="file" id="imageInput" accept="image/*" onchange="displayImage(event)" />
+                </label>
+                <div class="input-container">
+                    <input type="text" id="context" name="context">
+                    <label for="context">Digite o contexto da sua pergunta</label>
+                </div>
+            </div>
+            <div id="imageDisplay"></div>
+            <button type="submit" class="custom-upload-button">Enviar</button>
+            <span class="loading" id="loadingIndicator">Carregando...</span>
+        </form>
+        <div class="output" id="outputDiv" style="display: none">
+            <h2>Resultado da API:</h2>
+            <p><strong>Descrição:</strong> <span id="descricao"></span></p>
+        </div>
     </div>
     <div id="toastElement" class="toast"></div>
     <script>
@@ -108,7 +193,7 @@
                         const imageUrl = e.target.result;
 
                         const imageDisplay = document.getElementById('imageDisplay');
-                        imageDisplay.innerHTML = `<img src="${imageUrl}" alt="Imagem Selecionada" id="uploadedImage" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">`;
+                        imageDisplay.innerHTML = `<br><img src="${imageUrl}" alt="Imagem Selecionada" id="uploadedImage" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">`;
                     };
 
                     reader.readAsDataURL(file);
@@ -120,10 +205,11 @@
         const outputDiv = document.getElementById('outputDiv');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const descricaoSpan = document.getElementById('descricao');
-
+        
         imageUploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const contextValue = document.getElementById('context').value;
             const file = imageInput.files[0];
 
             const reader = new FileReader();
@@ -131,6 +217,7 @@
                 const base64Image = reader.result.split(',')[1];
 
                 const payload = {
+                    context: contextValue,
                     image: base64Image
                 };
 

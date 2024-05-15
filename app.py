@@ -27,7 +27,11 @@ def describe_image():
     # Verifica se a requisição contém dados
     if 'image' not in request.json:
         return jsonify({'error': 'No image data sent in request body'}), 400
+    
+    if 'context' not in request.json:
+        context = 'Descreva com detalhes'
 
+    context = request.json['context']
     try:
         # Decodifica a base64 para obter os bytes da imagem
         image_data = base64.b64decode(request.json['image'])
@@ -35,7 +39,7 @@ def describe_image():
         # Converte os bytes em um objeto de imagem
         image = Image.open(io.BytesIO(image_data))
 
-        response = model.generate_content(["Descreva com detalhes", image])
+        response = model.generate_content([context, image])
         response.resolve()
 
         # Retorna a descrição da imagem como JSON
