@@ -5,13 +5,15 @@ import io
 import os
 from PIL import Image
 import google.generativeai as genai
+from gtts import gTTS
+from base64 import b64encode
 
 app = Flask(__name__)
 CORS(app) # Habilitar CORS para todas as rotas da sua aplicação
 
 genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 model = genai.GenerativeModel('gemini-pro-vision')
-
+# set_api_key(api_key=os.environ.get('ELEVEN_API_KEY'))
 
 @app.route('/hello-world')
 def hello_world():
@@ -30,8 +32,9 @@ def describe_image():
     
     if 'context' not in request.json:
         context = 'Descreva com detalhes'
+    else:
+        context = request.json['context']
 
-    context = request.json['context']
     try:
         # Decodifica a base64 para obter os bytes da imagem
         image_data = base64.b64decode(request.json['image'])
@@ -42,8 +45,22 @@ def describe_image():
         response = model.generate_content([context, image])
         response.resolve()
 
+        tts = gTTS(text=response.text, lang='pt-br')
+
+        # Salve o áudio em um arquivo temporário
+        filename = "audio.mp3"
+        os.remove(filename)
+        tts.save(filename)
+
+        # Leia o arquivo MP3 como binário
+        with open('audio.mp3', 'rb') as f:
+            audio_data = f.read()
+
+        # Converta o binário em base64
+        mp3_base64 = b64encode(audio_data).decode('utf-8')
+
         # Retorna a descrição da imagem como JSON
-        return jsonify({'description': response.text}), 200
+        return jsonify({'description': mp3_base64}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
